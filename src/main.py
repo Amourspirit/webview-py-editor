@@ -27,6 +27,7 @@ class Api:
         if self._window:
             self._window.destroy()
         self._window = None
+        # this is needed in linux but not in windows.
         sys.exit()
 
     def log(self, value):
@@ -58,7 +59,7 @@ def find_src_dir():
 
 
 def set_code(window: webview.Window):
-    code = "# Write your code here! \n# \\'"
+    code = "# Write your code here! \nimport sys\nprint(sys.version)\n# type sys followed by a dot to see the completions\n"
     escaped_code = json.dumps(code)  # Escape the string for JavaScript
     print(escaped_code)
     window.evaluate_js(f"setCode({escaped_code})")
@@ -72,7 +73,13 @@ def main():
         js_api=api,
     )
     api.set_window(window)
-    webview.start(set_code, (window,), gui="qt", menu=menu_items)
+    if sys.platform == "win32":
+        gui_type = "cef"
+    elif sys.platform == "linux":
+        gui_type = "qt"
+    else:
+        gui_type = None
+    webview.start(set_code, (window,), gui=gui_type, menu=menu_items)
     print("Ended Webview")
 
 
